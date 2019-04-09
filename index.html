@@ -1,21 +1,65 @@
-<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<meta charset="utf-8">
-			<title>xG widget</title>
-			<link rel="stylesheet" href="http://widget.cloud.opta.net/v3/css/v3.football.opta-widgets.css">
-		</head>
-		<body>
-			<div style="width: 540px; padding: 40px;">
-				<opta-widget widget="expected_goals" competition="100" season="2018" match="984552" template="normal" live="false" show_match_header="true" show_crests="false" show_competition_name="true" competition_naming="full" show_date="true" date_format="dddd D MMMM YYYY" overview_stats="total_team_xg,total_shots,shots_on_target" show_patterns_of_play="true" xg_format="percent" show_shot_summary="true" shot_summary_columns="minute,pattern_of_play,xg" show_own_goals="false" show_key="false" show_info_tooltips="true" show_tooltips="true" show_timecontrols="true" show_timecontrols_buttons="true" show_timecontrols_bar="true" order_by="time_asc" team_naming="full" player_naming="full" show_logo="true" show_title="true" breakpoints="550, 700" sport="football"></opta-widget>
-			</div>
-			<script src="http://widget.cloud.opta.net/v3/v3.opta-widgets.js"></script>
-			<script>
-				var opta_settings = {
-					subscription_id: 'b21f744dbfd1bd9de7833a39592d1218',
-					language: 'en_GB',
-					timezone: 'Europe/London'
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V3 Widgets in jQuery UI Tabs</title><link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css"><link rel="stylesheet" href="http://widget.cloud.opta.net/v3/css/v3.football.opta-widgets.css"></head><body><div id="tabs"><ul><li><a href="#tab-fixtures">Fixtures</a></li><li><a href="#tab-compstats">Competition Stats</a></li><li><a href="#tab-refs">Referees</a></li></ul><div id="tab-fixtures"><opta-widget sport="football" widget="fixtures" template="normal" live="true" competition="8" season="2015" match="" team="" team_filter="" date_from="" date_to="" days_ahead="" days_before="" venue="" show_venue="false" group="" matchday="1" round="" match_status="all" grouping="date" show_grouping="true" navigation="" default_nav="1" start_on_current="true" sub_grouping="date" show_subgrouping="false" order_by="date_ascending" show_crests="true" date_format="dddd D MMMM YYYY" month_date_format="MMMM" competition_naming="full" team_naming="full" team_link="" match_link="" pre_match="false" show_live="false" show_logo="true" title="" show_title="true" breakpoints="400" load="false"></opta-widget></div><div id="tab-compstats"><opta-widget sport="football" widget="competition_stats" template="normal" competition="8" season="2015" show_crests="true" show_images="true" show_ranks="true" show_player_rankings="true" show_team_rankings="true" visible_stats="goals,goals_per_game,goals_conceded,shots,shots_on_target,clearances,passes,cards_yellow,cards_red,fouls,penalties,clean_sheets" limit="3" team_naming="full" player_naming="full" team_link="" player_link="" show_logo="true" title="" show_title="true" breakpoints="400" load="false"></opta-widget></div><div id="tab-refs"><opta-widget widget_id="ref_widget" sport="football" widget="referees" template="normal" competition="8" season="2015" show_fouls="true" show_penalties="true" show_cards_yellow="true" show_cards_red="true" show_offsides="true" show_cards_per_game="true" show_fouls_per_card="true" show_cards_icons="true" sorting="false" player_naming="full" show_logo="true" title="" show_title="true" breakpoints="400" load="false"></opta-widget><button id="destroy_refs">Destroy Referees Widget</button></div></div><script src="http://widget.cloud.opta.net/v3/v3.opta-widgets.js"></script><script src="https://code.jquery.com/jquery-1.12.4.js"></script><script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script><script>var opta_settings = {
+			subscription_id: 'b21f744dbfd1bd9de7833a39592d1218',
+			language: 'en_GB',
+			timezone: 'Europe/London'
+		};
+
+		$(function(){
+			var loadNewWidgets = function(dom){
+					var opta_widget_tags = $(dom).find('opta-widget[load="false"]');
+
+					if(opta_widget_tags.length){
+						opta_widget_tags.removeAttr('load');
+						Opta.start();
+					}
+				},
+				resumeFocussedWidgets = function(dom){
+					var widget_containers = $(dom).find('.Opta');
+
+					widget_containers.each(function(){
+						var element = $(this),
+							widget_id = element.attr('id'),
+							Widget = Opta.widgets[widget_id];
+
+						Widget.resume();
+						console.info("Resumed", Widget.attr.widget);
+					});
+				},
+				pauseHiddenWidgets = function(dom){
+					var widget_containers = $(dom).find('.Opta');
+
+					widget_containers.each(function(){
+						var element = $(this),
+							widget_id = element.attr('id'),
+							Widget = Opta.widgets[widget_id];
+
+						Widget.pause();
+						console.info("Paused", Widget.attr.widget);
+					});
 				};
-			</script>
-		</body>
-	</html>
+
+			$("#tabs").tabs({
+				create: function(event, ui){
+					// Load widgets in default tab
+					loadNewWidgets(ui.panel);
+				},
+				activate: function(event, ui){
+					console.group();
+					// Load any new widgets in selected tab
+					loadNewWidgets(ui.newPanel);
+
+					// Resume focussed widgets that have already been loaded
+					resumeFocussedWidgets(ui.newPanel);
+
+					// Pause hidden widgets
+					pauseHiddenWidgets(ui.oldPanel);
+					console.groupEnd();
+				}
+			});
+
+			$('#destroy_refs').on('click', function(){
+				if(Opta.widgets.ref_widget){
+					Opta.widgets.ref_widget.destroy(true);
+				}
+			});
+		});</script></body></html>
